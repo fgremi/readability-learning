@@ -1,5 +1,6 @@
 import type { Order, OrderItem } from "../src/order";
 
+/** Builds an order step by step; any detail the test doesn't care about gets a default. */
 export function anOrder() {
   const items: OrderItem[] = [];
   const builder = {
@@ -12,4 +13,9 @@ export function anOrder() {
     },
   };
   return builder;
+}
+
+/** Shortcut for tests that only care about the subtotal, not the individual items. */
+export function anOrderWorth(subtotalEur: number): Order {
+  return anOrder().withItem({ unitPriceEur: subtotalEur }).build();
 }
