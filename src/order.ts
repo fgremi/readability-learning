@@ -45,7 +45,7 @@ export function calculateOrderTotal(order: Order, options: PricingOptions = {}) 
   const discountedSubtotalEur = applyCoupon(subtotalEur, options.couponCode);
   const shippingEur = calculateShipping(discountedSubtotalEur, options);
 
-  return discountedSubtotalEur + shippingEur; // return the total
+  return Math.round((discountedSubtotalEur + shippingEur) * 100) / 100; // return the total
 }
 
 function assertValidOrder(order: Order) {
