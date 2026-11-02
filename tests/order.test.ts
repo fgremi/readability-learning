@@ -28,7 +28,7 @@ test("test4", () => {
 test("SUMMER5 applies when the subtotal is exactly the 30 EUR minimum", () => {
   expect(
     calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] }, { couponCode: "SUMMER5" }),
-  ).toBeCloseTo(29.99);
+  ).toBe(29.99);
 });
 
 test("WELCOME15 takes 15% off the subtotal", () => {
@@ -57,4 +57,10 @@ test("shipping cost depends on the destination country", () => {
   expect(
     calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] }, { country: "FR" }),
   ).toBe(39.99);
+});
+
+test("rounds the total to cents", () => {
+  expect(
+    calculateOrderTotal({ items: [{ unitPriceEur: 19.99, quantity: 3 }] }, { couponCode: "VIP10" }),
+  ).toBe(53.97);
 });
