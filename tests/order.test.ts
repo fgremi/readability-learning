@@ -49,3 +49,12 @@ test("rejects items with a quantity below 1", () => {
     "Invalid quantity: 0",
   );
 });
+
+test("shipping cost depends on the destination country", () => {
+  expect(
+    calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] }, { country: "PT" }),
+  ).toBe(36.99);
+  expect(
+    calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] }, { country: "FR" }),
+  ).toBe(39.99);
+});
