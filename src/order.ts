@@ -1,34 +1,44 @@
 // order.ts
 // Utils for orders
 
-const LIMIT = 30;
-const LIMIT2 = 50; // free shipping over 40€
+const SUMMER5_MIN_SUBTOTAL_EUR = 30;
+const FREE_SHIPPING_MIN_SUBTOTAL_EUR = 50; // free shipping over 40€
+const SHIPPING_COST_EUR = 4.99
 
-// calc function
-export function calc(o: any, c?: string, f?: boolean) {
-  let t = 0; // total
-  let tmp;
+export interface OrderItem {
+  unitPriceEur: number;
+  quantity: number;
+}
+export interface Order { items: OrderItem[] }
+export interface PricingOptions {
+  couponCode?: string;
+  isPremiumMember?: boolean;
+}
+
+export function calculateOrderTotal(order: Order, options: PricingOptions = {}) {
+  let totalEur = 0;
+  let lineTotalEur;
   // loop items
-  for (let i = 0; i < o.items.length; i++) {
-    tmp = o.items[i].p * o.items[i].q;
-    t = t + tmp;
+  for (let i = 0; i < order.items.length; i++) {
+    lineTotalEur = order.items[i].unitPriceEur * order.items[i].quantity;
+    totalEur = totalEur + lineTotalEur;
   }
 
   // discount
-  if (c) {
-    if (c == "VIP10") {
-      t = t - t * 0.1;
+  if (options.couponCode) {
+    if (options.couponCode == "VIP10") {
+      totalEur = totalEur - totalEur * 0.1;
     } else {
-      if (c == 'SUMMER5') {
-        if (t >= LIMIT) {
-          t = t - 5
+      if (options.couponCode == 'SUMMER5') {
+        if (totalEur >= SUMMER5_MIN_SUBTOTAL_EUR) {
+          totalEur = totalEur - 5
         }
       }
     }
   }
   // shipping
-  if (!f) {
-      if (t < LIMIT2) { t = t + 4.99; }
+  if (!options.isPremiumMember) {
+      if (totalEur < FREE_SHIPPING_MIN_SUBTOTAL_EUR) { totalEur = totalEur + SHIPPING_COST_EUR; }
   }
-    return t; // return the total
+    return totalEur; // return the total
 }
