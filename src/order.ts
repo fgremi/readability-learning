@@ -1,7 +1,7 @@
-// order.ts
-// Utils for orders
+// Prices an order in four steps: subtotal -> coupon -> shipping -> rounding.
+// All amounts are EUR with VAT already included, so there is no tax step.
 
-import { sum } from "./utils/math";
+import { roundToCents, sum } from "./utils/math";
 
 export type Country = "ES" | "PT" | "FR";
 
@@ -24,13 +24,16 @@ type Coupon =
   | { kind: "percentOff"; percent: number }
   | { kind: "amountOff"; amountEur: number; minSubtotalEur: number };
 
+// Codes are matched exactly: "vip10" is NOT a valid coupon.
 const COUPONS: Record<string, Coupon> = {
   VIP10: { kind: "percentOff", percent: 10 },
   SUMMER5: { kind: "amountOff", amountEur: 5, minSubtotalEur: 30 },
   WELCOME15: { kind: "percentOff", percent: 15 },
 };
 
-const FREE_SHIPPING_MIN_SUBTOTAL_EUR = 50; // free shipping over 40€
+// Inclusive: an order of exactly 50 EUR already ships for free.
+// Compared against the subtotal AFTER the coupon, so a coupon can make you lose free shipping.
+const FREE_SHIPPING_MIN_SUBTOTAL_EUR = 50;
 
 const SHIPPING_COST_BY_COUNTRY_EUR: Record<Country, number> = {
   ES: 4.99,
@@ -45,7 +48,10 @@ export function calculateOrderTotal(order: Order, options: PricingOptions = {}) 
   const discountedSubtotalEur = applyCoupon(subtotalEur, options.couponCode);
   const shippingEur = calculateShipping(discountedSubtotalEur, options);
 
-  return Math.round((discountedSubtotalEur + shippingEur) * 100) / 100; // return the total
+  // Round once, at the very end. Floats can't hold most cents exactly (59.97 * 0.9 = 53.973),
+  // and rounding every step would drift a cent away from what the payment provider charges.
+  // TODO: switch to integer cents if we ever need per-line rounding (e.g. invoices per item).
+  return roundToCents(discountedSubtotalEur + shippingEur);
 }
 
 function assertValidOrder(order: Order) {
