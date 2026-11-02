@@ -6,22 +6,36 @@ test("test1", () => {
 });
 
 test("test2", () => {
-  let r = calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 2 }] }, { couponCode: "VIP10" });
+  let r = calculateOrderTotal(
+    { items: [{ unitPriceEur: 30, quantity: 2 }] },
+    { couponCode: "VIP10" },
+  );
   expect(r).toBe(54);
 });
 
-test('test3', () => {
-  expect(calculateOrderTotal({ items: [{ unitPriceEur: 40, quantity: 1 }] }, { couponCode: "SUMMER5" })).toBe(39.99)
+test("test3", () => {
+  expect(
+    calculateOrderTotal({ items: [{ unitPriceEur: 40, quantity: 1 }] }, { couponCode: "SUMMER5" }),
+  ).toBe(39.99);
 });
 
 test("test4", () => {
-  expect(calculateOrderTotal({ items: [{ unitPriceEur: 10, quantity: 1 }] }, { isPremiumMember: true })).toBe(10);
+  expect(
+    calculateOrderTotal({ items: [{ unitPriceEur: 10, quantity: 1 }] }, { isPremiumMember: true }),
+  ).toBe(10);
 });
 
 test("SUMMER5 applies when the subtotal is exactly the 30 EUR minimum", () => {
-  expect(calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] }, { couponCode: "SUMMER5" })).toBeCloseTo(29.99);
+  expect(
+    calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] }, { couponCode: "SUMMER5" }),
+  ).toBeCloseTo(29.99);
 });
 
 test("WELCOME15 takes 15% off the subtotal", () => {
-  expect(calculateOrderTotal({ items: [{ unitPriceEur: 100, quantity: 1 }] }, { couponCode: "WELCOME15" })).toBe(85);
+  expect(
+    calculateOrderTotal(
+      { items: [{ unitPriceEur: 100, quantity: 1 }] },
+      { couponCode: "WELCOME15" },
+    ),
+  ).toBe(85);
 });
