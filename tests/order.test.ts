@@ -17,3 +17,7 @@ test('test3', () => {
 test("test4", () => {
   expect(calc({ items: [{ p: 10, q: 1 }] }, undefined, true)).toBe(10);
 });
+
+test("SUMMER5 applies when the subtotal is exactly the 30 EUR minimum", () => {
+  expect(calc({ items: [{ p: 30, q: 1 }] }, "SUMMER5")).toBeCloseTo(29.99);
+});
