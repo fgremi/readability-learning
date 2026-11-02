@@ -9,9 +9,9 @@ npm i
 ## Usage
 
 ```ts
-import { calc } from "./src/order";
+import { calculateOrderTotal } from "order-pricing";
 
-calc(o, c, f);
+console.log(calculateOrderTotal({ items: [{ unitPriceEur: 30, quantity: 1 }] })); // => 34.99
 ```
 
 Ask Juan if you have questions.
