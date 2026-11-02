@@ -33,6 +33,8 @@ export function calculateOrderTotal(order: Order, options: PricingOptions = {}) 
         if (totalEur >= SUMMER5_MIN_SUBTOTAL_EUR) {
           totalEur = totalEur - 5
         }
+      } else {
+          if(options.couponCode=="WELCOME15") {totalEur = totalEur-(totalEur*0.15)}
       }
     }
   }
