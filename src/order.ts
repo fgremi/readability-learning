@@ -27,7 +27,7 @@ type Coupon =
   | { kind: "percentOff"; percent: number }
   | { kind: "amountOff"; amountEur: number; minSubtotalEur: number };
 
-// Codes are matched exactly: "vip10" is NOT a valid coupon.
+// Codes are case-insensitive: "vip10" and "VIP10" are the same coupon.
 const COUPONS: Record<string, Coupon> = {
   VIP10: { kind: "percentOff", percent: 10 },
   SUMMER5: { kind: "amountOff", amountEur: 5, minSubtotalEur: 30 },
@@ -84,7 +84,7 @@ function calculateSubtotal(items: OrderItem[]) {
 }
 
 function applyCoupon(subtotalEur: number, couponCode?: string) {
-  const coupon = couponCode ? COUPONS[couponCode] : undefined;
+  const coupon = couponCode ? COUPONS[couponCode.toUpperCase()] : undefined;
   if (coupon?.kind === "percentOff") {
     return subtotalEur - (subtotalEur * coupon.percent) / 100;
   }
