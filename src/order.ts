@@ -20,7 +20,7 @@ export function calc(o: any, c?: string, f?: boolean) {
       t = t - t * 0.1;
     } else {
       if (c == 'SUMMER5') {
-        if (t > LIMIT) {
+        if (t >= LIMIT) {
           t = t - 5
         }
       }
