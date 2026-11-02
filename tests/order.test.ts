@@ -1,5 +1,6 @@
 import { test, expect } from "vitest";
 import { calculateOrderTotal } from "../src/order";
+import { anOrder } from "./builders";
 
 test("test1", () => {
   expect(calculateOrderTotal({ items: [{ unitPriceEur: 15, quantity: 2 }] })).toBe(34.99);
@@ -63,4 +64,9 @@ test("rounds the total to cents", () => {
   expect(
     calculateOrderTotal({ items: [{ unitPriceEur: 19.99, quantity: 3 }] }, { couponCode: "VIP10" }),
   ).toBe(53.97);
+});
+
+test("coupon codes are case-insensitive", () => {
+  const order = anOrder().withItem({ unitPriceEur: 100 }).build();
+  expect(calculateOrderTotal(order, { couponCode: "vip10" })).toBe(90);
 });
