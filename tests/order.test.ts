@@ -39,3 +39,13 @@ test("WELCOME15 takes 15% off the subtotal", () => {
     ),
   ).toBe(85);
 });
+
+test("rejects an order without items", () => {
+  expect(() => calculateOrderTotal({ items: [] })).toThrow("Order has no items");
+});
+
+test("rejects items with a quantity below 1", () => {
+  expect(() => calculateOrderTotal({ items: [{ unitPriceEur: 10, quantity: 0 }] })).toThrow(
+    "Invalid quantity: 0",
+  );
+});
