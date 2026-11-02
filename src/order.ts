@@ -13,6 +13,7 @@ export interface Order {
 export interface PricingOptions {
   couponCode?: string;
   isPremiumMember?: boolean;
+  country?: "ES" | "PT" | "FR";
 }
 
 type Coupon =
@@ -56,7 +57,13 @@ export function calculateOrderTotal(order: Order, options: PricingOptions = {}) 
   // shipping
   const qualifiesForFreeShipping =
     options.isPremiumMember || totalEur >= FREE_SHIPPING_MIN_SUBTOTAL_EUR;
-  const shippingEur = qualifiesForFreeShipping ? 0 : SHIPPING_COST_EUR;
+  const shippingEur = qualifiesForFreeShipping
+    ? 0
+    : options.country === "PT"
+      ? 6.99
+      : options.country === "FR"
+        ? 9.99
+        : SHIPPING_COST_EUR;
   totalEur = totalEur + shippingEur;
 
   return totalEur; // return the total
