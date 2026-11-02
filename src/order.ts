@@ -1,6 +1,10 @@
 // order.ts
 // Utils for orders
 
+import { sum } from "./utils/math";
+
+export type Country = "ES" | "PT" | "FR";
+
 export interface OrderItem {
   unitPriceEur: number;
   quantity: number;
@@ -13,7 +17,7 @@ export interface Order {
 export interface PricingOptions {
   couponCode?: string;
   isPremiumMember?: boolean;
-  country?: "ES" | "PT" | "FR";
+  country?: Country;
 }
 
 type Coupon =
@@ -27,9 +31,24 @@ const COUPONS: Record<string, Coupon> = {
 };
 
 const FREE_SHIPPING_MIN_SUBTOTAL_EUR = 50; // free shipping over 40€
-const SHIPPING_COST_EUR = 4.99;
+
+const SHIPPING_COST_BY_COUNTRY_EUR: Record<Country, number> = {
+  ES: 4.99,
+  PT: 6.99,
+  FR: 9.99,
+};
 
 export function calculateOrderTotal(order: Order, options: PricingOptions = {}) {
+  assertValidOrder(order);
+
+  const subtotalEur = calculateSubtotal(order.items);
+  const discountedSubtotalEur = applyCoupon(subtotalEur, options.couponCode);
+  const shippingEur = calculateShipping(discountedSubtotalEur, options);
+
+  return discountedSubtotalEur + shippingEur; // return the total
+}
+
+function assertValidOrder(order: Order) {
   if (order.items.length === 0) {
     throw new Error("Order has no items");
   }
@@ -37,34 +56,28 @@ export function calculateOrderTotal(order: Order, options: PricingOptions = {}) 
   if (invalidItem) {
     throw new Error(`Invalid quantity: ${invalidItem.quantity}`);
   }
+}
 
-  let totalEur = 0;
-  let lineTotalEur;
-  // loop items
-  for (let i = 0; i < order.items.length; i++) {
-    lineTotalEur = order.items[i].unitPriceEur * order.items[i].quantity;
-    totalEur = totalEur + lineTotalEur;
-  }
+function calculateSubtotal(items: OrderItem[]) {
+  return sum(items.map((item) => item.unitPriceEur * item.quantity));
+}
 
-  // discount
-  const coupon = options.couponCode ? COUPONS[options.couponCode] : undefined;
+function applyCoupon(subtotalEur: number, couponCode?: string) {
+  const coupon = couponCode ? COUPONS[couponCode] : undefined;
   if (coupon?.kind === "percentOff") {
-    totalEur = totalEur - (totalEur * coupon.percent) / 100;
-  } else if (coupon?.kind === "amountOff" && totalEur >= coupon.minSubtotalEur) {
-    totalEur = totalEur - coupon.amountEur;
+    return subtotalEur - (subtotalEur * coupon.percent) / 100;
   }
+  if (coupon?.kind === "amountOff" && subtotalEur >= coupon.minSubtotalEur) {
+    return subtotalEur - coupon.amountEur;
+  }
+  return subtotalEur;
+}
 
-  // shipping
+function calculateShipping(
+  discountedSubtotalEur: number,
+  { isPremiumMember, country = "ES" }: PricingOptions,
+) {
   const qualifiesForFreeShipping =
-    options.isPremiumMember || totalEur >= FREE_SHIPPING_MIN_SUBTOTAL_EUR;
-  const shippingEur = qualifiesForFreeShipping
-    ? 0
-    : options.country === "PT"
-      ? 6.99
-      : options.country === "FR"
-        ? 9.99
-        : SHIPPING_COST_EUR;
-  totalEur = totalEur + shippingEur;
-
-  return totalEur; // return the total
+    isPremiumMember || discountedSubtotalEur >= FREE_SHIPPING_MIN_SUBTOTAL_EUR;
+  return qualifiesForFreeShipping ? 0 : SHIPPING_COST_BY_COUNTRY_EUR[country];
 }
