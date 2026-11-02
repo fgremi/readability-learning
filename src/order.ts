@@ -29,40 +29,35 @@ const FREE_SHIPPING_MIN_SUBTOTAL_EUR = 50; // free shipping over 40€
 const SHIPPING_COST_EUR = 4.99;
 
 export function calculateOrderTotal(order: Order, options: PricingOptions = {}) {
-  if (order.items.length > 0) {
-    let totalEur = 0;
-    let lineTotalEur;
-    // loop items
-    for (let i = 0; i < order.items.length; i++) {
-      if (order.items[i].quantity >= 1) {
-        lineTotalEur = order.items[i].unitPriceEur * order.items[i].quantity;
-        totalEur = totalEur + lineTotalEur;
-      } else {
-        throw new Error("Invalid quantity: " + order.items[i].quantity);
-      }
-    }
-
-    // discount
-    const coupon = options.couponCode ? COUPONS[options.couponCode] : undefined;
-    if (coupon) {
-      if (coupon.kind === "percentOff") {
-        totalEur = totalEur - (totalEur * coupon.percent) / 100;
-      } else {
-        if (totalEur >= coupon.minSubtotalEur) {
-          totalEur = totalEur - coupon.amountEur;
-        }
-      }
-    }
-
-    // shipping
-    if (!options.isPremiumMember) {
-      if (totalEur < FREE_SHIPPING_MIN_SUBTOTAL_EUR) {
-        totalEur = totalEur + SHIPPING_COST_EUR;
-      }
-    }
-
-    return totalEur; // return the total
-  } else {
+  if (order.items.length === 0) {
     throw new Error("Order has no items");
   }
+  const invalidItem = order.items.find((item) => item.quantity < 1);
+  if (invalidItem) {
+    throw new Error(`Invalid quantity: ${invalidItem.quantity}`);
+  }
+
+  let totalEur = 0;
+  let lineTotalEur;
+  // loop items
+  for (let i = 0; i < order.items.length; i++) {
+    lineTotalEur = order.items[i].unitPriceEur * order.items[i].quantity;
+    totalEur = totalEur + lineTotalEur;
+  }
+
+  // discount
+  const coupon = options.couponCode ? COUPONS[options.couponCode] : undefined;
+  if (coupon?.kind === "percentOff") {
+    totalEur = totalEur - (totalEur * coupon.percent) / 100;
+  } else if (coupon?.kind === "amountOff" && totalEur >= coupon.minSubtotalEur) {
+    totalEur = totalEur - coupon.amountEur;
+  }
+
+  // shipping
+  const qualifiesForFreeShipping =
+    options.isPremiumMember || totalEur >= FREE_SHIPPING_MIN_SUBTOTAL_EUR;
+  const shippingEur = qualifiesForFreeShipping ? 0 : SHIPPING_COST_EUR;
+  totalEur = totalEur + shippingEur;
+
+  return totalEur; // return the total
 }
