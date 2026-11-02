@@ -15,8 +15,11 @@ export interface Order {
 }
 
 export interface PricingOptions {
+  /** Unknown codes are ignored, so the customer simply pays full price. */
   couponCode?: string;
+  /** Premium members never pay shipping. */
   isPremiumMember?: boolean;
+  /** Destination country. Defaults to "ES". */
   country?: Country;
 }
 
@@ -41,6 +44,18 @@ const SHIPPING_COST_BY_COUNTRY_EUR: Record<Country, number> = {
   FR: 9.99,
 };
 
+/**
+ * Calculates what the customer pays for an order, in EUR, rounded to cents.
+ *
+ * Steps: subtotal -> coupon -> shipping -> rounding. See the README for the full rules.
+ *
+ * @example
+ * calculateOrderTotal({ items: [{ unitPriceEur: 12, quantity: 2 }] }); // 28.99 (24 + 4.99 shipping)
+ * calculateOrderTotal(order, { couponCode: "SUMMER5", country: "PT" });
+ *
+ * @throws {Error} "Order has no items" when `order.items` is empty.
+ * @throws {Error} "Invalid quantity: <n>" when an item has `quantity < 1`.
+ */
 export function calculateOrderTotal(order: Order, options: PricingOptions = {}) {
   assertValidOrder(order);
 
